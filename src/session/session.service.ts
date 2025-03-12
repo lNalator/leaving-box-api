@@ -15,7 +15,7 @@ export class SessionService {
       id: uuidv4(),
       code: code,
       agentId: agentId,
-      operatorIds: [agentId], // le créateur est le premier joueur
+      operatorIds: [],
       createdAt: new Date(),
     };
     this.sessions.push(newSession);
