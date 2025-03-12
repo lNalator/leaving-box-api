@@ -9,34 +9,57 @@ import { v4 as uuidv4 } from 'uuid';
 export class SessionService {
   private readonly sessions: Session[] = [];
 
-  createSession({ agentId }: CreateSessionDto): Session {
+  // getSessionById(sessionId: string): Session | undefined {
+  //   console.log(this.getSessions());
+  //   const session = this.sessions.find((s) => s.id === sessionId);
+  //   console.log('getSessionById', session);
+  //   return session;
+  // }
+
+  // getSessions(): Session[] {
+  //   return this.sessions;
+  // }
+
+  createSession({ agentId, difficulty }: CreateSessionDto): Session {
     const code = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
+    let maxTime = 600000;
+    if (difficulty === 'Easy') {
+      maxTime = 900000;
+    }
+    if (difficulty === 'Medium') {
+      maxTime = 600000;
+    }
+    if (difficulty === 'Hard') {
+      maxTime = 480000;
+    }
     const newSession: Session = {
       id: uuidv4(),
       code: code,
       agentId: agentId,
       operatorIds: [],
+      maxTime: maxTime,
       createdAt: new Date(),
     };
-    this.sessions.push(newSession);
     return newSession;
   }
 
-  joinSession({ sessionCode, operatorId }: JoinSessionDTO) {
-    const session = this.sessions.find((s) => s.code === sessionCode);
-    if (session && !session.operatorIds.includes(operatorId)) {
-      session.operatorIds.push(operatorId);
-      return session;
-    }
-    return null;
-  }
+  // joinSession({ sessionCode, operatorId }: JoinSessionDTO) {
+  //   console.log(this.getSessions());
 
-  clearSession({ sessionId }: ClearSessionDTO) {
-    const index = this.sessions.findIndex((s) => s.id === sessionId);
-    if (index === -1) {
-      return false;
-    }
-    this.sessions.splice(index, 1);
-    return true;
-  }
+  //   const session = this.sessions.find((s) => s.code === sessionCode);
+  //   if (session && !session.operatorIds.includes(operatorId)) {
+  //     session.operatorIds.push(operatorId);
+  //     return session;
+  //   }
+  //   return null;
+  // }
+
+  // clearSession({ sessionId }: ClearSessionDTO) {
+  //   const index = this.sessions.findIndex((s) => s.id === sessionId);
+  //   if (index === -1) {
+  //     return false;
+  //   }
+  //   this.sessions.splice(index, 1);
+  //   return true;
+  // }
 }
