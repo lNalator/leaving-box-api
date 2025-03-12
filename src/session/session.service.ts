@@ -20,7 +20,7 @@ export class SessionService {
   //   return this.sessions;
   // }
 
-  createSession({ agentId, difficulty }: CreateSessionDto): Session {
+  createSession({ difficulty }: CreateSessionDto): Session {
     const code = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
     let maxTime = 600000;
     if (difficulty === 'Easy') {
@@ -35,8 +35,6 @@ export class SessionService {
     const newSession: Session = {
       id: uuidv4(),
       code: code,
-      agentId: agentId,
-      operatorIds: [],
       maxTime: maxTime,
       createdAt: new Date(),
     };

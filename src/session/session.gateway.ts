@@ -52,7 +52,7 @@ export class SessionsGateway {
   @SubscribeMessage('createSession')
   handleCreateSession(
     @MessageBody()
-    data: { agentId: string; difficulty: 'Easy' | 'Medium' | 'Hard' },
+    data: { difficulty: 'Easy' | 'Medium' | 'Hard' },
     @ConnectedSocket() client: Socket,
   ) {
     const session = this.sessionService.createSession(data);
