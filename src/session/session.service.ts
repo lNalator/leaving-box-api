@@ -22,15 +22,15 @@ export class SessionService {
 
   createSession({ difficulty }: CreateSessionDto): Session {
     const code = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
-    let maxTime = 600000;
+    let maxTime = 900;
     if (difficulty === 'Easy') {
-      maxTime = 900000;
+      maxTime = 900;
     }
     if (difficulty === 'Medium') {
-      maxTime = 600000;
+      maxTime = 600;
     }
     if (difficulty === 'Hard') {
-      maxTime = 480000;
+      maxTime = 480;
     }
     const newSession: Session = {
       id: uuidv4(),

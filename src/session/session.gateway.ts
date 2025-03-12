@@ -13,8 +13,6 @@ import { SessionService } from './session.service';
   cors: {
     origin: '*',
   },
-  pingInterval: 10000,
-  pingTimeout: 5000,
 })
 export class SessionsGateway {
   @WebSocketServer()
@@ -32,20 +30,24 @@ export class SessionsGateway {
   ) {
     const clients = await this.server.in(data.sessionCode).fetchSockets();
 
-    const clientsInfo = clients.map((socket) => ({
-      id: socket.id,
-      rooms: Array.from(socket.rooms),
-    }));
+    if (clients.length <= 0) {
+      return {
+        success: false,
+        message: 'Session with code ' + data.sessionCode + ' does not exist',
+      };
+    } else {
+      const clientsInfo = clients.map((socket) => ({
+        id: socket.id,
+        rooms: Array.from(socket.rooms),
+      }));
 
-    for (const client of clientsInfo) {
-      console.log('Client in room', data.sessionCode, client.id);
-    }
-
-    if (client.rooms.has(data.sessionCode)) {
-      client.emit('currentSession', {
-        sessionCode: data.sessionCode,
-        connectedClients: clientsInfo,
-      });
+      if (client.rooms.has(data.sessionCode)) {
+        client.emit('currentSession', {
+          sessionCode: data.sessionCode,
+          connectedClients: clientsInfo,
+        });
+      }
+      return { success: true };
     }
   }
 
@@ -66,53 +68,84 @@ export class SessionsGateway {
 
   @SubscribeMessage('joinSession')
   handleJoin(
-    @MessageBody() joinSessionDTO: JoinSessionDTO,
+    @MessageBody() data: { sessionCode: string },
     @ConnectedSocket() client: Socket,
   ) {
     const rooms = client.rooms;
     for (let room in rooms) {
       if (room !== client.id) client.leave(room);
     }
-    client.join(joinSessionDTO.sessionCode);
-    this.server.to(joinSessionDTO.sessionCode).emit('playerJoined');
+    client.join(data.sessionCode);
+    this.server.to(data.sessionCode).emit('playerJoined');
   }
 
-  // /**
-  //  * Démarre un timer pour une session donnée.
-  //  * @param sessionId L'identifiant de la session (utilisé comme "room" sur Socket.IO)
-  //  * @param durationInSeconds Durée du timer en secondes (par exemple, 600 pour 10 minutes)
-  //  */
-  // startGameTimer(sessionId: string, durationInSeconds: number) {
-  //   let remaining = durationInSeconds;
+  @SubscribeMessage('leaveSession')
+  handleLeave(
+    @MessageBody() data: { sessionCode: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.leave(data.sessionCode);
+  }
 
-  //   this.server.to(sessionId).emit('timerUpdate', { remaining });
+  @SubscribeMessage('clearSession')
+  handleClearSession(
+    @MessageBody() data: { sessionCode: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      console.log('sessionCleared', data);
 
-  //   const interval = setInterval(() => {
-  //     remaining--;
-  //     this.server.to(sessionId).emit('timerUpdate', { remaining });
+      this.server
+        .to(data.sessionCode)
+        .emit('sessionCleared', { sessionId: data.sessionCode });
+      this.server.to(data.sessionCode).socketsLeave(data.sessionCode);
+      return { success: true };
+    } catch (error) {
+      console.log('error', error);
+      return { success: false };
+    }
+  }
 
-  //     if (remaining <= 0) {
-  //       clearInterval(interval);
-  //       delete this.sessionTimers[sessionId];
-  //       this.server
-  //         .to(sessionId)
-  //         .emit('gameOver', { message: 'Le temps est écoulé !' });
-  //     }
-  //   }, 1000);
+  @SubscribeMessage('startTimer')
+  handleStartTimer(
+    @MessageBody() data: { sessionId: string; duration: number },
+  ) {
+    // Démarre le timer pour la session avec la durée spécifiée (en secondes)
+    this.startGameTimer(data.sessionId, data.duration);
+  }
 
-  //   this.sessionTimers[sessionId] = interval;
-  // }
+  @SubscribeMessage('stopTimer')
+  handleStopTimer(@MessageBody() data: { sessionId: string }) {
+    this.stopGameTimer(data.sessionId);
+  }
 
-  // /**
-  //  * Message pour démarrer le timer depuis le client.
-  //  * Par exemple, l'agent peut envoyer ce message pour démarrer la partie.
-  //  */
-  // @SubscribeMessage('startTimer')
-  // handleStartTimer(
-  //   @MessageBody() data: { sessionId: string; duration: number },
-  // ) {
-  //   // Démarre le timer pour la session avec la durée spécifiée (en secondes)
-  //   this.startGameTimer(data.sessionId, data.duration);
-  //   return { message: 'Timer démarré' };
-  // }
+  startGameTimer(sessionId: string, durationInSeconds: number) {
+    let remaining = durationInSeconds;
+
+    this.server.to(sessionId).emit('timerUpdate', { remaining });
+
+    const interval = setInterval(() => {
+      remaining--;
+      this.server.to(sessionId).emit('timerUpdate', { remaining });
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        delete this.sessionTimers[sessionId];
+        this.server
+          .to(sessionId)
+          .emit('gameOver', { message: 'Le temps est écoulé !' });
+      }
+    }, 1000);
+
+    this.sessionTimers[sessionId] = interval;
+  }
+
+  stopGameTimer(sessionId: string) {
+    if (this.sessionTimers[sessionId]) {
+      clearInterval(this.sessionTimers[sessionId]);
+      delete this.sessionTimers[sessionId];
+      // Vous pouvez également informer la room que le timer est stoppé
+      this.server.to(sessionId).emit('timerStopped', { sessionId });
+    }
+  }
 }
