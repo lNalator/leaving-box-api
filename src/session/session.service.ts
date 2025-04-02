@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Session } from 'src/interface/session.interface';
-import { RedisService } from 'src/redis/redis.service';
-import ClearSessionDTO from 'src/ressource/clearSession.ressource';
-import CreateSessionDto from 'src/ressource/createSession.ressource';
-import JoinSessionDTO from 'src/ressource/joinSession.ressource';
+import { Session } from 'src/session/interface/session.interface';
+import { RedisService } from 'src/session/redis/redis.service';
+import ClearSessionDTO from 'src/session/ressource/clearSession.ressource';
+import CreateSessionDto from 'src/session/ressource/createSession.ressource';
+import JoinSessionDTO from 'src/session/ressource/joinSession.ressource';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()

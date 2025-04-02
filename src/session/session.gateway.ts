@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import JoinSessionDTO from 'src/ressource/joinSession.ressource';
+import JoinSessionDTO from 'src/session/ressource/joinSession.ressource';
 import { SessionService } from './session.service';
 
 @WebSocketGateway({
@@ -123,7 +123,7 @@ export class SessionsGateway {
     this.sessionService.updateSession(data.sessionCode, {
       started: true,
     });
-  
+
     this.server.to(data.sessionCode).emit('gameStarted', { session });
 
     return { success: true };
@@ -200,7 +200,7 @@ export class SessionsGateway {
 
     const interval = setInterval(async () => {
       remaining--;
-      console.log('Remaining time:', remaining, " for session : ", sessionCode);
+      console.log('Remaining time:', remaining, ' for session : ', sessionCode);
 
       // Met à jour Redis avec le temps restant
       await this.sessionService.updateTimer(sessionCode, remaining);

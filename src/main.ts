@@ -10,7 +10,8 @@ async function bootstrap() {
     .setTitle('Leaving Box API')
     .setDescription('API FOR LEAVING BOX')
     .setVersion('0.1')
-    .addTag('Games')
+    .addTag('Sessions')
+    .addTag('Modules')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

@@ -2,7 +2,7 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('game')
+@ApiTags('Sessions')
 @Controller('sessions')
 export class SessionsController {
   constructor(private readonly sessionService: SessionService) {}
