@@ -28,6 +28,7 @@ export class SessionService {
       maxTime: maxTime,
       createdAt: new Date(),
       players: [],
+      started: false,
     };
     await this.redisService.set(`session:${code}`, JSON.stringify(newSession));
     return newSession;
@@ -57,7 +58,7 @@ export class SessionService {
     }
     return null;
   }
-  
+
   async deleteSession(sessionCode: string): Promise<void> {
     await this.redisService.del(`session:${sessionCode}`);
   }

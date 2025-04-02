@@ -4,4 +4,5 @@ export interface Session {
   maxTime: number;
   createdAt: Date;
   players: string[];
+  started: boolean;
 }

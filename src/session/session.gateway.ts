@@ -107,6 +107,28 @@ export class SessionsGateway {
     return { success: true };
   }
 
+  @SubscribeMessage('startGame')
+  async handleStartGame(
+    @MessageBody() data: { sessionCode: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const session = await this.sessionService.getSession(data.sessionCode);
+    if (!session) {
+      return {
+        success: false,
+        message: `Session with code ${data.sessionCode} does not exist`,
+      };
+    }
+
+    this.sessionService.updateSession(data.sessionCode, {
+      started: true,
+    });
+  
+    this.server.to(data.sessionCode).emit('gameStarted', { session });
+
+    return { success: true };
+  }
+
   @SubscribeMessage('leaveSession')
   async handleLeave(
     @MessageBody() data: { sessionCode: string; player: string },
