@@ -8,11 +8,4 @@ export default class JoinSessionDTO {
     required: true,
   })
   sessionCode: string;
-  @ApiProperty({
-    example: '2',
-    name: 'operatorId',
-    type: String,
-    required: true,
-  })
-  operatorId: string;
 }
