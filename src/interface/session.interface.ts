@@ -3,4 +3,5 @@ export interface Session {
   code: string;
   maxTime: number;
   createdAt: Date;
+  players: string[];
 }
