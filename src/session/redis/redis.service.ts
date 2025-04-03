@@ -8,7 +8,6 @@ export class RedisService implements OnModuleInit {
   private client: Redis;
 
   onModuleInit() {
-    console.log(process.env.REDIS_HOST)
     this.client = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: Number(process.env.REDIS_PORT) || 6379,

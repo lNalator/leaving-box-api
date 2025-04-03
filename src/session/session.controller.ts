@@ -11,5 +11,13 @@ export class SessionsController {
   async getAllSessions() {
     return await this.sessionService.getAllSessions();
   }
+
+  @Get(':sessionCode')
+  async getSession(@Param('sessionCode') sessionCode: string) {
+    const session = await this.sessionService.getSession(sessionCode);
+    if (!session) {
+      return { success: false, message: 'Session not found' };
+    }
+    return { success: true, session };
+  }
 }
- 

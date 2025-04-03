@@ -10,7 +10,8 @@ import { ModuleService } from './module.service';
       { name: ModuleEntity.name, schema: ModuleSchema },
     ]),
   ],
-    controllers: [ModuleController],
-    providers: [ModuleService],
+  controllers: [ModuleController],
+  providers: [ModuleService],
+  exports: [ModuleService],
 })
 export class ModuleModule {}
