@@ -19,8 +19,13 @@ export class ModuleService {
   findAll(): Promise<ModuleEntity[]> {
     return this.ModuleModel.find().exec();
   }
+
   findOne(id: string): Promise<ModuleEntity | null> {
     return this.ModuleModel.findById(id).exec();
+  }
+
+  findSome(quantity: number): Promise<ModuleEntity[]> {
+    return this.ModuleModel.aggregate().sample(quantity).exec();    
   }
 
   update(id: string, module: ModuleEntity): Promise<ModuleEntity | null> {

@@ -22,7 +22,7 @@ RUN npm install --only=production
 COPY --from=builder /usr/src/app/dist ./dist
 # COPY ./environment/.env.prod ./environment/.env.dev 
 
-# Exposer le port sur lequel l'application écoute (par défaut NestJS écoute sur le port 3000)
+# Exposer le port sur lequel l'application écoute
 EXPOSE 3030
 
 # Démarrer l'application

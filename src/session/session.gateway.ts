@@ -6,19 +6,24 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import JoinSessionDTO from 'src/session/ressource/joinSession.ressource';
 import { SessionService } from './session.service';
+import { ModuleService } from 'src/game/modules/module.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['*'],
   },
 })
 export class SessionsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(
+    private readonly sessionService: SessionService,
+    private readonly moduleService: ModuleService,
+  ) {}
 
   // Objet pour stocker les intervalles de timer par session
   private readonly sessionTimers: { [sessionCode: string]: NodeJS.Timeout } =
@@ -123,8 +128,11 @@ export class SessionsGateway {
     this.sessionService.updateSession(data.sessionCode, {
       started: true,
     });
+    const moduleManuals = await this.moduleService.findSome(3);
 
-    this.server.to(data.sessionCode).emit('gameStarted', { session });
+    this.server
+      .to(data.sessionCode)
+      .emit('gameStarted', { session, moduleManuals });
 
     return { success: true };
   }
