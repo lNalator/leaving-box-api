@@ -20,9 +20,10 @@ RUN npm install --only=production
 
 # Copier le répertoire dist (résultat de la compilation) depuis l'étape builder
 COPY --from=builder /usr/src/app/dist ./dist
+# COPY ./environment/.env.prod ./environment/.env.dev 
 
 # Exposer le port sur lequel l'application écoute (par défaut NestJS écoute sur le port 3000)
-EXPOSE 3000
+EXPOSE 3030
 
 # Démarrer l'application
 CMD ["node", "dist/main.js"]

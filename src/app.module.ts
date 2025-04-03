@@ -9,10 +9,11 @@ import { ModuleModule } from './game/modules/module.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
-    MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/leaving_box?authSource=admin`,
-    ),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'production' ? './environment/.env.prod' : './environment/.env.dev', 
+    }),
+    MongooseModule.forRoot(process.env.DATABASE_URL as string),
     ModuleModule,
     SessionsModule,
     RedisModule,

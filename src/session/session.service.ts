@@ -34,8 +34,8 @@ export class SessionService {
     return newSession;
   }
 
-  async getAllSessions(key: string): Promise<string[]> {
-    return await this.redisService.getAll(key);
+  async getAllSessions(): Promise<string[]> {
+    return await this.redisService.getAll(`session`);
   }
 
   async getSession(sessionCode: string): Promise<any> {

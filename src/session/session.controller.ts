@@ -7,9 +7,9 @@ import { ApiTags } from '@nestjs/swagger';
 export class SessionsController {
   constructor(private readonly sessionService: SessionService) {}
 
-  @Get('/:key')
-  async getAllSessions(@Param('key') key: string) {
-    console.log('key', key);
-    return await this.sessionService.getAllSessions(key);
+  @Get('')
+  async getAllSessions() {
+    return await this.sessionService.getAllSessions();
   }
 }
+ 
