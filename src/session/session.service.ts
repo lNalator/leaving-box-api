@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class SessionService {
   constructor(private readonly redisService: RedisService) {}
 
-  async createSession({ difficulty }: CreateSessionDto): Promise<Session> {
+  async createSession({ difficulty, agentId }: CreateSessionDto): Promise<Session> {
     const code = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
     let maxTime = 900;
     if (difficulty === 'Easy') {
@@ -27,7 +27,7 @@ export class SessionService {
       code: code,
       maxTime: maxTime,
       createdAt: new Date(),
-      players: [],
+      players: [agentId],
       started: false,
     };
     await this.redisService.set(`session:${code}`, JSON.stringify(newSession));
@@ -84,10 +84,6 @@ export class SessionService {
     session.players = session.players.filter((p) => p !== player);
     await this.updateSession(sessionCode, session);
     return session;
-  }
-
-  async clearSession(sessionCode: string): Promise<void> {
-    await this.deleteSession(sessionCode);
   }
 
   async updateTimer(sessionCode: string, remaining: number): Promise<any> {

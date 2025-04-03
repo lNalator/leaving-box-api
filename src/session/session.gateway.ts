@@ -35,11 +35,18 @@ export class SessionsGateway {
     data: { difficulty: 'Easy' | 'Medium' | 'Hard' },
     @ConnectedSocket() client: Socket,
   ) {
+    // TODO : ADD AGENT JOINING THE REDIS SESSION
     try {
-      const session = await this.sessionService.createSession(data);
+      const session = await this.sessionService.createSession({
+        difficulty: data.difficulty,
+        agentId: client.id,
+      });
       // Remove other rooms except the socket's own id.
       for (const room of client.rooms) {
-        if (room !== client.id) client.leave(room);
+        if (room !== client.id) {
+          await this.sessionService.deleteSession(room)
+          client.leave(room)
+        };
       }
       client.join(session.code);
       client.emit('sessionCreated', session);
@@ -90,7 +97,6 @@ export class SessionsGateway {
         client.leave(room);
       }
     }
-
     client.join(data.sessionCode);
 
     const session = await this.sessionService.addPlayerToSession(
@@ -128,7 +134,7 @@ export class SessionsGateway {
     this.sessionService.updateSession(data.sessionCode, {
       started: true,
     });
-    const moduleManuals = await this.moduleService.findSome(3);
+    const moduleManuals = await this.moduleService.findSome(5);
 
     this.server
       .to(data.sessionCode)
@@ -173,7 +179,7 @@ export class SessionsGateway {
   ) {
     try {
       console.log('sessionCleared', data);
-      await this.sessionService.clearSession(data.sessionCode);
+      await this.sessionService.deleteSession(data.sessionCode);
       this.server
         .to(data.sessionCode)
         .emit('sessionCleared', { sessionCode: data.sessionCode });

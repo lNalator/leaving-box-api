@@ -8,4 +8,12 @@ export default class CreateSessionDTO {
     required: true,
   })
   difficulty: 'Easy' | 'Medium' | 'Hard';
+
+  @ApiProperty({
+    example: '123456',
+    name: 'agentId',
+    type: String,
+    required: true,
+  })
+  agentId: string;
 }
