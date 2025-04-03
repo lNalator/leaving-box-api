@@ -35,7 +35,6 @@ export class SessionsGateway {
     data: { difficulty: 'Easy' | 'Medium' | 'Hard' },
     @ConnectedSocket() client: Socket,
   ) {
-    // TODO : ADD AGENT JOINING THE REDIS SESSION
     try {
       const session = await this.sessionService.createSession({
         difficulty: data.difficulty,
@@ -44,9 +43,9 @@ export class SessionsGateway {
       // Remove other rooms except the socket's own id.
       for (const room of client.rooms) {
         if (room !== client.id) {
-          await this.sessionService.deleteSession(room)
-          client.leave(room)
-        };
+          await this.sessionService.deleteSession(room);
+          client.leave(room);
+        }
       }
       client.join(session.code);
       client.emit('sessionCreated', session);
@@ -101,7 +100,7 @@ export class SessionsGateway {
 
     const session = await this.sessionService.addPlayerToSession(
       data.sessionCode,
-      data.player,
+      `${client.id}-${data.player}`,
     );
     if (!session) {
       return {
@@ -123,6 +122,7 @@ export class SessionsGateway {
     @MessageBody() data: { sessionCode: string },
     @ConnectedSocket() client: Socket,
   ) {
+    //TODO - HANDLE WITH CLIENT (ONLY AGENT CAN START GAME)
     const session = await this.sessionService.getSession(data.sessionCode);
     if (!session) {
       return {
@@ -148,6 +148,7 @@ export class SessionsGateway {
     @MessageBody() data: { sessionCode: string; player: string },
     @ConnectedSocket() client: Socket,
   ) {
+    //TODO - HANDLE WITH CLIENT (REMOVE OPERATOR ON SESSION LEAVE)
     // Supprime le joueur de la session dans Redis
     const session = await this.sessionService.removePlayerFromSession(
       data.sessionCode,
