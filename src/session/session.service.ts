@@ -68,6 +68,9 @@ export class SessionService {
     if (!session) {
       return null;
     }
+    if (session.players.includes(player)) {
+      return session;
+    }
     session.players.push(player);
     await this.updateSession(sessionCode, session);
     return session;
