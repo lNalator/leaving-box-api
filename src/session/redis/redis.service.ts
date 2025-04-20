@@ -39,6 +39,4 @@ export class RedisService implements OnModuleInit {
   async del(key: string): Promise<number> {
     return this.client.del(key);
   }
-
-  // Other wrapper methods as needed...
 }

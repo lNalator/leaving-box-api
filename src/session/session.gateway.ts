@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { SessionService } from './session.service';
 import { ModuleService } from 'src/game/modules/module.service';
+import { Session } from './interface/session.interface';
 
 @WebSocketGateway({
   cors: {
@@ -50,6 +51,7 @@ export class SessionsGateway {
       client.join(session.code);
       client.emit('sessionCreated', session);
     } catch (error) {
+      console.error(error);
       client.emit('error', { message: 'Failed to create session' });
     }
   }
@@ -117,6 +119,36 @@ export class SessionsGateway {
     return { success: true };
   }
 
+  @SubscribeMessage('leaveSession')
+  async handleLeave(
+    @MessageBody() data: { sessionCode: string; player: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    //TODO - HANDLE WITH CLIENT (REMOVE OPERATOR ON SESSION LEAVE)
+    // Supprime le joueur de la session dans Redis
+    const session = await this.sessionService.removePlayerFromSession(
+      data.sessionCode,
+      `${client.id}-${data.player}`,
+    );
+    if (!session) {
+      return {
+        success: false,
+        message: `Session with code ${data.sessionCode} does not exist`,
+      };
+    }
+
+    // Le client quitte la salle correspondant à la session
+    client.leave(data.sessionCode);
+
+    // Informe tous les clients de la salle que le joueur a quitté
+    this.server.to(data.sessionCode).emit('playerLeft', {
+      player: `${client.id}-${data.player}`,
+      session,
+    });
+
+    return { success: true };
+  }
+
   @SubscribeMessage('startGame')
   async handleStartGame(
     @MessageBody() data: { sessionCode: string },
@@ -143,36 +175,6 @@ export class SessionsGateway {
     return { success: true };
   }
 
-  @SubscribeMessage('leaveSession')
-  async handleLeave(
-    @MessageBody() data: { sessionCode: string; player: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    //TODO - HANDLE WITH CLIENT (REMOVE OPERATOR ON SESSION LEAVE)
-    // Supprime le joueur de la session dans Redis
-    const session = await this.sessionService.removePlayerFromSession(
-      data.sessionCode,
-      data.player,
-    );
-    if (!session) {
-      return {
-        success: false,
-        message: `Session with code ${data.sessionCode} does not exist`,
-      };
-    }
-
-    // Le client quitte la salle correspondant à la session
-    client.leave(data.sessionCode);
-
-    // Informe tous les clients de la salle que le joueur a quitté
-    this.server.to(data.sessionCode).emit('playerLeft', {
-      player: data.player,
-      session,
-    });
-
-    return { success: true };
-  }
-
   @SubscribeMessage('clearSession')
   async handleClearSession(
     @MessageBody() data: { sessionCode: string },
@@ -195,12 +197,16 @@ export class SessionsGateway {
   }
 
   @SubscribeMessage('startTimer')
-  async handleStartTimer(
-    @MessageBody() data: { sessionCode: string; duration: number },
-  ) {
+  async handleStartTimer(@MessageBody() data: { sessionCode: string }) {
     // Démarre le timer pour la session avec la durée spécifiée (en secondes)
-    await this.sessionService.updateTimer(data.sessionCode, data.duration);
-    this.startGameTimer(data.sessionCode, data.duration);
+    const session = await this.sessionService.startTimer(data.sessionCode);
+    if (!session) {
+      return {
+        success: false,
+        message: `Session with code ${data.sessionCode} does not exist or has allready started`,
+      };
+    }
+    this.startGameTimer(data.sessionCode, session);
   }
 
   @SubscribeMessage('stopTimer')
@@ -208,8 +214,8 @@ export class SessionsGateway {
     this.stopGameTimer(data.sessionCode);
   }
 
-  async startGameTimer(sessionCode: string, durationInSeconds: number) {
-    let remaining = durationInSeconds;
+  async startGameTimer(sessionCode: string, session: Session) {
+    let remaining = session.maxTime;
 
     this.server.to(sessionCode).emit('timerUpdate', { remaining });
 

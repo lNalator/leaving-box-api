@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Session } from 'src/session/interface/session.interface';
 import { RedisService } from 'src/session/redis/redis.service';
-import ClearSessionDTO from 'src/session/ressource/clearSession.ressource';
 import CreateSessionDto from 'src/session/ressource/createSession.ressource';
-import JoinSessionDTO from 'src/session/ressource/joinSession.ressource';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SessionService {
   constructor(private readonly redisService: RedisService) {}
 
-  async createSession({ difficulty, agentId }: CreateSessionDto): Promise<Session> {
+  async createSession({
+    difficulty,
+    agentId,
+  }: CreateSessionDto): Promise<Session> {
     const code = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
     let maxTime = 900;
     if (difficulty === 'Easy') {
@@ -20,12 +21,15 @@ export class SessionService {
       maxTime = 600;
     }
     if (difficulty === 'Hard') {
-      maxTime = 480;
+      // maxTime = 480;
+      maxTime = 60;
     }
     const newSession: Session = {
       id: uuidv4(),
       code: code,
       maxTime: maxTime,
+      remainingTime: maxTime,
+      timerStarted: false,
       createdAt: new Date(),
       players: [agentId],
       started: false,
@@ -38,7 +42,7 @@ export class SessionService {
     return await this.redisService.getAll(`session`);
   }
 
-  async getSession(sessionCode: string): Promise<any> {
+  async getSession(sessionCode: string): Promise<Session | null> {
     const sessionData = await this.redisService.get(`session:${sessionCode}`);
     return sessionData ? JSON.parse(sessionData) : null;
   }
@@ -63,6 +67,7 @@ export class SessionService {
     await this.redisService.del(`session:${sessionCode}`);
   }
 
+  // PLAYER MANAGEMENT
   async addPlayerToSession(sessionCode: string, player: string): Promise<any> {
     const session = await this.getSession(sessionCode);
     if (!session) {
@@ -89,12 +94,36 @@ export class SessionService {
     return session;
   }
 
+  //TIMER
+  async startTimer(sessionCode: string): Promise<Session | null> {
+    const session = await this.getSession(sessionCode);
+    if (!session) {
+      return null;
+    }
+    if (session.timerStarted) {
+      return null;
+    }
+
+    session.timerStarted = true;
+    await this.updateSession(sessionCode, session);
+    return session;
+  }
+
   async updateTimer(sessionCode: string, remaining: number): Promise<any> {
     const session = await this.getSession(sessionCode);
     if (!session) {
       return null;
     }
-    session.remaining = remaining;
+    if (session.timerStarted === false) {
+      return null;
+    }
+    if (remaining <= 0) {
+      session.timerStarted = false;
+      session.remainingTime = 0;
+      await this.updateSession(sessionCode, session);
+      return null;
+    }
+    session.remainingTime = remaining;
     await this.updateSession(sessionCode, session);
     return session;
   }
