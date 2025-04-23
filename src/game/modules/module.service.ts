@@ -25,7 +25,7 @@ export class ModuleService {
   }
 
   findSome(quantity: number): Promise<ModuleEntity[]> {
-    return this.ModuleModel.aggregate().sample(quantity).exec();    
+    return this.ModuleModel.aggregate().sample(quantity).exec();
   }
 
   update(id: string, module: ModuleEntity): Promise<ModuleEntity | null> {
