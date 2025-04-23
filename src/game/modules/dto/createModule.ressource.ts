@@ -14,9 +14,6 @@ export class LevelDto {
 
   @ApiProperty({ type: String, required: true })
   description: string;
-
-  @ApiProperty({ type: [RulesDto], required: true })
-  rules: RulesDto[];
 }
 
 export class CreateModuleDto {
@@ -26,9 +23,6 @@ export class CreateModuleDto {
   @ApiProperty({ type: String, required: true })
   description: string;
 
-  @ApiProperty({ type: [RulesDto], required: true })
-  rules: RulesDto[];
-
   @ApiProperty({ type: Boolean, required: true })
   hasLevels: boolean;
 
@@ -37,4 +31,7 @@ export class CreateModuleDto {
 
   @ApiProperty({ type: String, required: true })
   defuseMethod: string;
+
+  @ApiProperty({ type: String, required: false })
+  pdfUrl?: string;
 }
