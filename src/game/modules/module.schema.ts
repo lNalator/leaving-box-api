@@ -19,8 +19,8 @@ export class ModuleEntity {
   @Prop({ type: String, required: true })
   description: string;
 
-  @Prop({ type: [Rules], required: true })
-  rules: Rules[];
+  @Prop({ type: String, required: false })
+  pdfUrl?: string;
 
   @Prop({ type: Boolean, required: true })
   hasLevels: boolean;

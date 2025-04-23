@@ -7,7 +7,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import {  ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { ModuleService } from './module.service';
 import { ModuleEntity } from './module.schema';
 import { CreateModuleDto } from './dto/createModule.ressource';

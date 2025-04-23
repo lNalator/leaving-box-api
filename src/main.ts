@@ -1,9 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as express from 'express';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(
+    '/manuals',
+    express.static(join(__dirname, '..', 'public', 'manuals')),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Leaving Box API')
